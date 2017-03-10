@@ -64,29 +64,29 @@ runcmd(struct cmd *cmd)
       exit(0);
     // fprintf(stderr, "exec not implemented\n");
     // Your code here ...
-	if (fork1() == 0) {
-		if (execv(  ecmd->argv[0][0] == '/' ? ecmd->argv[0] : strcat(path, ecmd->argv[0]),
-					ecmd->argv) == -1) {
-			fprintf(stderr, "ERROR: executing %s\n", ecmd->argv[0]);
-			exit(-2);
-		}
-	}
-	wait(&r);
-	break;
+    if (fork1() == 0) {
+      if (execv(  ecmd->argv[0][0] == '/' ? ecmd->argv[0] : strcat(path, ecmd->argv[0]),
+            ecmd->argv) == -1) {
+        fprintf(stderr, "ERROR: executing %s\n", ecmd->argv[0]);
+        exit(-2);
+      }
+    }
+    wait(&r);
+    break;
 
   case '>':
   case '<':
     rcmd = (struct redircmd*)cmd;
     // fprintf(stderr, "redir not implemented\n");
     // Your code here ...
-	if (close(rcmd->fd) == -1) {
-		fprintf(stderr, "ERROR: doing close in redirection\n");
-		exit(-3);
-	}
-	if (open(rcmd->file, rcmd->mode) == -1) {
-		fprintf(stderr, "ERROR: doing open in redirection, can not open %s\n", rcmd->file);
-		exit(-3);
-	}
+    if (close(rcmd->fd) == -1) {
+      fprintf(stderr, "ERROR: doing close in redirection\n");
+      exit(-3);
+    }
+    if (open(rcmd->file, rcmd->mode) == -1) {
+      fprintf(stderr, "ERROR: doing open in redirection, can not open %s\n", rcmd->file);
+      exit(-3);
+    }
     runcmd(rcmd->cmd);
     break;
 
@@ -94,20 +94,20 @@ runcmd(struct cmd *cmd)
     pcmd = (struct pipecmd*)cmd;
     // fprintf(stderr, "pipe not implemented\n");
     // Your code here ...
-	pipe(p);
-	if (fork() == 0) {
-		close(0);
-		dup(p[0]);
-		close(p[0]);
-		close(p[1]);
-		runcmd(pcmd->right);
-	} else {
-		close(1);
-		dup(p[1]);
-		close(p[0]);
-		close(p[1]);
-		runcmd(pcmd->left);
-	}
+    pipe(p);
+    if (fork() == 0) {
+      close(0);
+      dup(p[0]);
+      close(p[0]);
+      close(p[1]);
+      runcmd(pcmd->right);
+    } else {
+      close(1);
+      dup(p[1]);
+      close(p[0]);
+      close(p[1]);
+      runcmd(pcmd->left);
+    }
     break;
   }
   exit(0);
@@ -210,11 +210,12 @@ gettoken(char **ps, char *es, char **q, char **eq)
   int ret;
 
   s = *ps;
-  while(s < es && strchr(whitespace, *s))
+  while(s < es && strchr(whitespace, *s))	// get s to the non white char
     s++;
-  if(q)
+  if(q)			// q is where the token starts
     *q = s;
   ret = *s;
+
   switch(*s){
   case 0:
     break;
@@ -227,15 +228,16 @@ gettoken(char **ps, char *es, char **q, char **eq)
     break;
   default:
     ret = 'a';
-    while(s < es && !strchr(whitespace, *s) && !strchr(symbols, *s))
+    while(s < es && !strchr(whitespace, *s) && !strchr(symbols, *s))	// jump words
       s++;
     break;
   }
-  if(eq)
+
+  if(eq)		// eq is where the token ends
     *eq = s;
 
-  while(s < es && strchr(whitespace, *s))
-    s++;
+  while(s < es && strchr(whitespace, *s))	// again eats white chars
+    s++;									// maybe so next call can do
   *ps = s;
   return ret;
 }
